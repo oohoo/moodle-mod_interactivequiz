@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="mod/interactivequiz/db" VERSION="20130621" COMMENT="XMLDB file for Moodle mod/interactivequiz"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="interactivequiz" COMMENT="Default comment for Interactive Quiz, please edit me">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="course" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Course Interactive Quiz activity belongs to"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="name field for moodle instances"/>
+        <FIELD NAME="intro" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="General introduction of the Interactive Quiz activity"/>
+        <FIELD NAME="introformat" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Format of the intro field (MOODLE, HTML, MARKDOWN...)"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="course" UNIQUE="false" FIELDS="course"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="interactivequiz_questions" COMMENT="Houses all of the questions for the quiz">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="interactivequiz_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The interactive quiz this question is associated with"/>
+        <FIELD NAME="question_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The question from the questions table"/>
+        <FIELD NAME="question_order" TYPE="int" LENGTH="4" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="top_level" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Is this question at the top level of the quiz?"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="interactivequiz_id" TYPE="foreign" FIELDS="interactivequiz_id" REFTABLE="interactivequiz" REFFIELDS="id"/>
+        <KEY NAME="question_id" TYPE="foreign" FIELDS="question_id" REFTABLE="question" REFFIELDS="id"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="interactivequiz_answers" COMMENT="The answers for each question and the corresponding next question">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="interactivequiz_question_from" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The question this answer belongs to"/>
+        <FIELD NAME="interactivequiz_question_next" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="The next question that occurs"/>
+        <FIELD NAME="question_answer_id" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="The corresponding answer entry"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="interactivequiz_question_from" TYPE="foreign" FIELDS="interactivequiz_question_from" REFTABLE="interactivequiz_questions" REFFIELDS="id"/>
+        <KEY NAME="question_answer_id" TYPE="foreign" FIELDS="question_answer_id" REFTABLE="question_answers" REFFIELDS="id"/>
+        <KEY NAME="interactivequiz_question_next" TYPE="foreign" FIELDS="interactivequiz_question_next" REFTABLE="interactivequiz_questions" REFFIELDS="id"/>
+      </KEYS>
+    </TABLE>
+  </TABLES>
+</XMLDB>

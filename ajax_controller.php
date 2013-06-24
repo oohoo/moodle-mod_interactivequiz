@@ -61,9 +61,27 @@ switch($query) {
         $iquestionid = required_param('iquestion', PARAM_INT);
         delete_question($iquestionid);
         break;
+    case 'penalty':
+        $ianswerid = required_param('ianswer', PARAM_INT);
+        $penalty = required_param('penalty', PARAM_INT);
+        set_penalty($ianswerid, $penalty);
+        break;
 }
 
 /* Action Library */
+
+/**
+ * Sets the penalty associated with a subquestion. That is, the percentage of the mark that is
+ * deducted for needing this subquestion.
+ *
+ * @global moodle_database $DB
+ * @param int $ianswerid the id from the {@code interactivequiz_answers} table
+ * @param int $penalty the penalty value which is between 0 and 100
+ */
+function set_penalty($ianswerid, $penalty) {
+    global $DB;
+    $DB->set_field('interactivequiz_answers', 'penalty', $penalty, array('id' => $ianswerid));
+}
 
 /**
  * Adds the given question to the quiz in the specified position.
@@ -118,6 +136,7 @@ function add_subquestion($questionid, $answerid, $iquestionid) {
     $answer->interactivequiz_question_from = $iquestionid;
     $answer->interactivequiz_question_next = $nextid;
     $answer->question_answer_id = $answerid;
+    $answer->penalty = 0;
     $DB->insert_record('interactivequiz_answers', $answer);
 }
 
@@ -241,6 +260,20 @@ function builder() {
 
                 echo '<td class="interactivequiz-builder-question-answer-subquestion-name">';
                 echo $subquestion->name;
+                echo '<br/>';
+                echo '<span class="interactivequiz-builder-question-answer-subquestion-penaltylabel">';
+                echo get_string('penalty', 'interactivequiz').': ';
+                echo '<select class="interactivequiz-builder-question-answer-subquestion-penalty" ';
+                echo 'data-ianswerid="'.$answer_subquestion->id.'">';
+                for($penalty = 0; $penalty <= 100; $penalty += 5) {
+                    echo '<option value="'.$penalty.'" ';
+                    if($answer_subquestion->penalty == $penalty) {
+                        echo 'SELECTED';
+                    }
+                    echo '>'.$penalty.'%</option>';
+                }
+                echo '</select>';
+                echo '</span>';
                 echo '</td>';
             } else {
                 echo '<td colspan="2">';

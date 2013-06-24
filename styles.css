@@ -91,6 +91,11 @@
     font-weight: bold;
 }
 
+.interactivequiz-builder-question-answer-subquestion-penaltylabel {
+    font-weight: normal;
+    font-size: 10px;
+}
+
 .interactivequiz-builder-question-answer-text {
     text-align: center;
 }

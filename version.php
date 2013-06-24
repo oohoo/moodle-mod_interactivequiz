@@ -16,6 +16,6 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$module->version   = 2013061700;      // The current module version (Date: YYYYMMDDXX)
+$module->version   = 2013062400;      // The current module version (Date: YYYYMMDDXX)
 $module->requires  = 2010031900;      // Requires this Moodle version
 $module->component = 'mod_interactivequiz'; // To check on upgrade, that module sits in correct place

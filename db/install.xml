@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="mod/interactivequiz/db" VERSION="20130621" COMMENT="XMLDB file for Moodle mod/interactivequiz"
+<XMLDB PATH="mod/interactivequiz/db" VERSION="20130624" COMMENT="XMLDB file for Moodle mod/interactivequiz"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -41,6 +41,7 @@
         <FIELD NAME="interactivequiz_question_from" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The question this answer belongs to"/>
         <FIELD NAME="interactivequiz_question_next" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="The next question that occurs"/>
         <FIELD NAME="question_answer_id" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="The corresponding answer entry"/>
+        <FIELD NAME="penalty" TYPE="int" LENGTH="3" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>

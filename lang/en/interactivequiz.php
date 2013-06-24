@@ -28,6 +28,7 @@ $string['left'] = 'Left';
 $string['modulename'] = 'Interactive Quiz';
 $string['modulenameplural'] = 'Interactive Quizzes';
 $string['modulename_help'] = 'An interactive quiz that has several completion paths';
+$string['penalty'] = 'Penalty';
 $string['pluginadministration'] = 'Interactive Quiz administration';
 $string['pluginname'] = 'Interactive Quiz';
 $string['right'] = 'Right';

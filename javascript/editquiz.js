@@ -115,6 +115,17 @@ function getURLParameter(name) {
                 }
                 return false;
             });
+
+            // Penalty value dropdowns
+            $('.interactivequiz-builder-question-answer-subquestion-penalty').change(function() {
+                var ianswerid = $(this).data('ianswerid');
+                var penalty = $(this).val();
+                $.ajax({
+                        url: 'ajax_controller.php',
+                        type: 'POST',
+                        data: { query: 'penalty', cmid: cmid, ianswer: ianswerid, penalty: penalty }
+                });
+            });
         });
     };
     builder_update();

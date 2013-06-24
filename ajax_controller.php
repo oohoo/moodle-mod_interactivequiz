@@ -16,8 +16,9 @@
 
 require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
 require_once(dirname(__FILE__).'/lib.php');
-
 require_once(dirname(dirname(dirname(__FILE__))).'/lib/questionlib.php');
+
+/* Context and Capabilities check */
 
 $cmid = required_param('cmid', PARAM_INT);   // course module ID
 $query = required_param('query', PARAM_TEXT);
@@ -35,21 +36,48 @@ require_capability('mod/interactivequiz:manage', $context);
 
 $PAGE->set_context($context);
 
+/* AJAX actions available and their parameters */
 
+switch($query) {
+    case 'addquestion':
+        $questionid = required_param('question', PARAM_INT);
+        $order = required_param('order', PARAM_INT);
+        add_question($questionid, $order);
+        break;
+    case 'addsubquestion':
+        $questionid = required_param('question', PARAM_INT);
+        $answerid = required_param('answer', PARAM_INT);
+        $iquestionid = required_param('iquestion', PARAM_INT);
+        add_subquestion($questionid, $answerid, $iquestionid);
+        break;
+    case 'builder':
+        builder();
+        break;
+    case 'category':
+        $category = required_param('category', PARAM_INT);
+        category($category);
+        break;
+    case 'deletequestion':
+        $iquestionid = required_param('iquestion', PARAM_INT);
+        delete_question($iquestionid);
+        break;
+}
 
+/* Action Library */
 
-if($query == 'category') {
-    $category = required_param('category', PARAM_INT);
-    category($category);
-} else if($query == 'builder') {
-    builder();
-} else if($query == 'addquestion') {
-    $questionid = required_param('question', PARAM_INT);
-    $order = required_param('order', PARAM_INT);
+/**
+ * Adds the given question to the quiz in the specified position.
+ *
+ * @global moodle_database $DB
+ * @param int $questionid the question id from the {@code questions} table
+ * @param int $order the position of the question within the quiz
+ */
+function add_question($questionid, $order) {
+    global $DB, $cm;
 
+    // Bump the existing questions up to make room for the new question
     $iquestions = $DB->get_records_select('interactivequiz_questions',
         'interactivequiz_id = ? AND question_order >= ?', array($cm->id, $order));
-    // Bump the existing ones up
     foreach($iquestions as $iquestion) {
         $DB->set_field('interactivequiz_questions', 'question_order', $iquestion->question_order+1,
             array('id' => $iquestion->id));
@@ -61,29 +89,21 @@ if($query == 'category') {
     $question->question_order = $order;
     $question->top_level = 1;
     $DB->insert_record('interactivequiz_questions', $question);
-} else if($query == 'deletequestion') {
-    $iquestionid = required_param('iquestion', PARAM_INT);
-    $DB->delete_records('interactivequiz_questions', array('id' => $iquestionid));
-    // Reorder records
-    $iquestions = $DB->get_records('interactivequiz_questions', array('interactivequiz_id' => $cm->id));
-    $count = 1;
-    foreach($iquestions as $iquestion) {
-        $DB->set_field('interactivequiz_questions', 'question_order', $count++,
-            array('id' => $iquestion->id));
-    }
+}
 
-    // Delete answers
-    $answers = $DB->get_records('interactivequiz_answers',
-        array('interactivequiz_question_from' => $iquestionid));
-    foreach($answers as $answer) {
-        $DB->delete_records('interactivequiz_questions',
-            array('id' => $answer->interactivequiz_question_next));
-        $DB->delete_records('interactivequiz_answers', array('id' => $answer->id));
-    }
-} else if($query == 'addsubquestion') {
-    $questionid = required_param('question', PARAM_INT);
-    $answerid = required_param('answer', PARAM_INT);
-    $iquestionid = required_param('iquestion', PARAM_INT);
+/**
+ * Adds the given question as a subquestion to another within the quiz. That is, the question that
+ * follows another for a given answer.
+ *
+ * @global moodle_database $DB
+ * @param int $questionid the question id to add from the {@code questions} table
+ * @param int $answerid the answer to associate the subquestion to from the
+ *      {@code question_answers} table
+ * @param int $iquestionid the top level question to be associated with from the
+ *      {@code interactivequiz_questions} table
+ */
+function add_subquestion($questionid, $answerid, $iquestionid) {
+    global $DB, $cm;
 
     // First add the sub question
     $question = new stdClass();
@@ -101,6 +121,43 @@ if($query == 'category') {
     $DB->insert_record('interactivequiz_answers', $answer);
 }
 
+/**
+ * Deletes the question from the quiz.
+ *
+ * @global moodle_database $DB
+ * @param int $iquestionid the question id from the {@code interactivequiz_questions} table
+ */
+function delete_question($iquestionid) {
+    global $DB, $cm;
+
+    $DB->delete_records('interactivequiz_questions', array('id' => $iquestionid));
+    // Reorder records
+    $iquestions = $DB->get_records('interactivequiz_questions',
+        array('interactivequiz_id' => $cm->id));
+    $count = 1;
+    foreach($iquestions as $iquestion) {
+        $DB->set_field('interactivequiz_questions', 'question_order', $count++,
+            array('id' => $iquestion->id));
+    }
+
+    // Delete answers
+    $answers = $DB->get_records('interactivequiz_answers',
+        array('interactivequiz_question_from' => $iquestionid));
+    foreach($answers as $answer) {
+        $DB->delete_records('interactivequiz_questions',
+            array('id' => $answer->interactivequiz_question_next));
+        $DB->delete_records('interactivequiz_answers', array('id' => $answer->id));
+    }
+    $DB->delete_records('interactivequiz_answers',
+        array('interactivequiz_question_next' => $iquestionid));
+}
+
+/**
+ * Renders the quiz builder.
+ *
+ * @global moodle_database $DB
+ * @global core_renderer $OUTPUT
+ */
 function builder() {
     global $DB, $OUTPUT, $cm;
     $quiz_questions = $DB->get_records('interactivequiz_questions',
@@ -177,6 +234,9 @@ function builder() {
                 echo 'data-iquestionid="'.$isubquestion->id.'">';
                 echo $image;
                 echo '</a>';
+                echo '<span class="interactivequiz-builder-question-delete-confirm">';
+                echo get_string('clickagaintoconfirm', 'interactivequiz');
+                echo '</span>';
                 echo '</td>';
 
                 echo '<td class="interactivequiz-builder-question-answer-subquestion-name">';
@@ -221,6 +281,13 @@ function builder() {
     }
 }
 
+/**
+ * Renders the category sidebar.
+ *
+ * @global moodle_database $DB
+ * @global core_renderer $OUTPUT
+ * @param int $category the category id from the {@code question_categories} table
+ */
 function category($category) {
     global $DB, $OUTPUT, $start, $cmid;
     $question_limit = 5;

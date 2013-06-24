@@ -23,11 +23,10 @@ $cm         = get_coursemodule_from_id('interactivequiz', $cmid, 0, false, MUST_
 $course     = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
 $interactivequiz  = $DB->get_record('interactivequiz', array('id' => $cm->instance), '*', MUST_EXIST);
 
-require_course_login($course);
+require_login($course, true, $cm);
+$context = get_context_instance(CONTEXT_MODULE, $cm->id);
 
-add_to_log($course->id, 'interactivequiz', 'view all', 'edit.php?cmid='.$cmid, '');
-
-$coursecontext = get_context_instance(CONTEXT_COURSE, $course->id);
+add_to_log($course->id, 'interactivequiz', 'edit quiz', 'edit.php?cmid='.$cmid, $interactivequiz->name, $cm->id);
 
 // JS Dependencies
 $PAGE->requires->jquery();
@@ -36,10 +35,9 @@ $PAGE->requires->jquery_plugin('ui');
 $PAGE->requires->jquery_plugin('ui-css');
 
 $PAGE->set_url('/mod/interactivequiz/edit.php', array('cmid' => $cmid));
-$PAGE->set_pagelayout('course');
 $PAGE->set_title(format_string($course->fullname));
 $PAGE->set_heading(format_string($course->fullname));
-$PAGE->set_context($coursecontext);
+$PAGE->set_context($context);
 
 echo $OUTPUT->header();
 
